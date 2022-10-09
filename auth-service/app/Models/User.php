@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\Role;
+use App\Producer;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -45,4 +46,23 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'role' => Role::class,
     ];
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        self::created(static function (User $model) {
+            $event = [
+                'event_name' => 'UserCreated',
+                'data' => [
+                    'public_id' => $model->public_id,
+                    'email' => $model->email,
+                    'name' => $model->name,
+                    'role' => $model->role,
+                ],
+            ];
+
+            Producer::call($event, 'users-stream');
+        });
+    }
 }
