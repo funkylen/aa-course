@@ -16,3 +16,15 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::group([
+    'prefix' => 'tasks',
+    'controller' => \App\Http\Controllers\TaskController::class,
+], function () {
+    Route::get('/', 'index');
+    Route::get('/create', 'create');
+    Route::post('/', 'store');
+    Route::post('/reassign', 'reassignAll');
+    Route::get('/{task}', 'show');
+    Route::post('/{task}/complete', 'complete');
+});
