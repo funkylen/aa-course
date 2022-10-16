@@ -1,8 +1,11 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 const OAUTH_CLIENT_ID = '97777af1-4c32-42c9-afeb-c4e23d66af9c';
 const OAUTH_CLIENT_SECRET = 'kiRbWEpI4lI3l2mvy4Pj7ScpkDWbcXqMURoyY53t';
@@ -21,7 +24,7 @@ const OAUTH_CLIENT_SECRET = 'kiRbWEpI4lI3l2mvy4Pj7ScpkDWbcXqMURoyY53t';
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('home');
 
 Route::group([
     'prefix' => 'tasks',
@@ -35,7 +38,11 @@ Route::group([
     Route::post('/{task}/complete', 'complete');
 });
 
-Route::get('/auth', function () {
+Route::get('/auth', function (Request $request) {
+    if ($request->user()) {
+        dd($request->user());
+    }
+
     $query = http_build_query([
         'client_id' => OAUTH_CLIENT_ID,
         'response_type' => 'code',
@@ -66,5 +73,20 @@ Route::get('/oauth/callback', function (Request $request) {
 
     $userResponse = Http::withToken($token)->get($base . '/api/user');
 
-    dd($userResponse->json());
+    if ($userResponse->status() !== 200) {
+        return redirect('auth');
+    }
+
+    $userData = $userResponse->json();
+
+    $publicId = $userData['public_id'];
+
+    $user = User::where('public_id', $publicId)->first();
+
+    abort_unless($user, 401);
+
+    Auth::loginUsingId($user->id);
+
+    return redirect('home');
 });
+
