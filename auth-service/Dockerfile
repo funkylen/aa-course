@@ -43,5 +43,10 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN addgroup -g 1000 -S www && \
     adduser -u 1000 -S www -G www
 
+# KAFKA EXTENSION INSTALL
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+
+RUN install-php-extensions rdkafka
+
 # Change current user to application
 USER www
