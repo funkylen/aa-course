@@ -7,6 +7,7 @@ use App\Enums\TaskStatus;
 use App\Http\Requests\StoreTaskRequest;
 use App\Models\Task;
 use App\Models\User;
+use App\Producer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -53,7 +54,17 @@ class TaskController extends Controller
 
         $task->save();
 
-        // TODO: produce event TaskCreated
+        $event = [
+            'event_name' => 'TaskCreated',
+            'data' => [
+                'user_id' => $task->user_id,
+                'status' => $task->status,
+                'name' => $task->name,
+                'description' => $task->description,
+            ],
+        ];
+
+        Producer::call($event, 'tasks-stream');
 
         return response($task, 201);
     }
@@ -75,7 +86,28 @@ class TaskController extends Controller
 
         $task->save();
 
-        // TODO: Produce event TaskCompleted
+        $event = [
+            'event_name' => 'TaskUpdated',
+            'data' => [
+                'user_id' => $task->user_id,
+                'status' => $task->status,
+                'name' => $task->name,
+                'description' => $task->description,
+            ],
+        ];
+
+        Producer::call($event, 'tasks-stream');
+
+        $eventBL = [
+            'event_name' => 'TaskCompleted',
+            'data' => [
+                'user_id' => $task->user_id,
+                'status' => $task->status,
+                'name' => $task->name,
+            ],
+        ];
+
+        Producer::call($eventBL, 'tasks-bl');
 
         return response($task);
     }
@@ -88,10 +120,28 @@ class TaskController extends Controller
 
         $tasks->each(function (Task $task) {
             $task->user_id = $this->getRandomUserId();
+
+            $event = [
+                'event_name' => 'TaskUpdated',
+                'data' => [
+                    'user_id' => $task->user_id,
+                    'status' => $task->status,
+                    'name' => $task->name,
+                    'description' => $task->description,
+                ],
+            ];
+
+            Producer::call($event, 'tasks-stream');
+
             $task->save();
         });
 
-        // TODO: Produce event TaskReassigned
+        $eventBL = [
+            'event_name' => 'TasksReassigned',
+            'data' => [],
+        ];
+
+        Producer::call($eventBL, 'tasks-bl');
 
         return response()->noContent();
     }
