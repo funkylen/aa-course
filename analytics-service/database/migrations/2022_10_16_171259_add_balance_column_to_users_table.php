@@ -13,15 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('tasks', function (Blueprint $table) {
-            $table->id();
-
-            $table->uuid('public_id');
-            $table->string('price');
-            $table->string('status');
-            $table->uuid('user_id');
-
-            $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('balance');
         });
     }
 
@@ -32,6 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tasks');
+        Schema::table('users', function (Blueprint $table) {
+            //
+        });
     }
 };
