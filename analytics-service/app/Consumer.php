@@ -10,6 +10,9 @@ use Junges\Kafka\Facades\Kafka;
 
 class Consumer
 {
+    /**
+     * TODO: Забирать информацию о всех транзакциях из биллинга
+     */
     public static function consume(): void
     {
         $consumer = Kafka::createConsumer()
