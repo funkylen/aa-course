@@ -19,12 +19,12 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        // TODO: Заполнить после бойлерплейта
         'name',
         'email',
         'password',
         'public_id',
         'role',
+        'balance',
     ];
 
     /**

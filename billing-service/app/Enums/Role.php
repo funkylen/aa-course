@@ -8,4 +8,5 @@ enum Role: string
     case CHIEF = 'chief';
     case DEV = 'dev';
     case MANAGER = 'manager';
+    case ACCOUNTANT = 'accountant';
 }
