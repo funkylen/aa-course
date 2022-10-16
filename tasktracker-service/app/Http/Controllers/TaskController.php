@@ -11,6 +11,7 @@ use App\Producer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class TaskController extends Controller
 {
@@ -54,12 +55,19 @@ class TaskController extends Controller
 
         $task->save();
 
+        if (str($task->title)->containsAll(['[', ']'])) {
+            abort(400, "Remove Jira ID from title.");
+        }
+
         $event = [
+            'event_id' => (string) Str::uuid(),
+            'event_version' => 2,
             'event_name' => 'TaskCreated',
             'data' => [
                 'user_id' => $task->user_id,
                 'status' => $task->status,
-                'name' => $task->name,
+                'title' => $task->title,
+                'jira_id' => $task->jira_id,
                 'description' => $task->description,
             ],
         ];
@@ -87,11 +95,13 @@ class TaskController extends Controller
         $task->save();
 
         $event = [
+            'event_id' => (string) Str::uuid(),
+            'event_version' => 1,
             'event_name' => 'TaskUpdated',
             'data' => [
                 'user_id' => $task->user_id,
                 'status' => $task->status,
-                'name' => $task->name,
+                'title' => $task->title,
                 'description' => $task->description,
             ],
         ];
@@ -99,11 +109,13 @@ class TaskController extends Controller
         Producer::call($event, 'tasks-stream');
 
         $eventBL = [
+            'event_id' => (string) Str::uuid(),
+            'event_version' => 1,
             'event_name' => 'TaskCompleted',
             'data' => [
                 'user_id' => $task->user_id,
                 'status' => $task->status,
-                'name' => $task->name,
+                'title' => $task->title,
             ],
         ];
 
@@ -122,11 +134,13 @@ class TaskController extends Controller
             $task->user_id = $this->getRandomUserId();
 
             $event = [
+                'event_id' => (string) Str::uuid(),
+                'event_version' => 1,
                 'event_name' => 'TaskUpdated',
                 'data' => [
                     'user_id' => $task->user_id,
                     'status' => $task->status,
-                    'name' => $task->name,
+                    'title' => $task->title,
                     'description' => $task->description,
                 ],
             ];
@@ -137,8 +151,12 @@ class TaskController extends Controller
         });
 
         $eventBL = [
+            'event_id' => (string) Str::uuid(),
+            'event_version' => 1,
             'event_name' => 'TasksReassigned',
-            'data' => [],
+            'data' => [
+                'reassigner_public_id' => Auth::id(),
+            ],
         ];
 
         Producer::call($eventBL, 'tasks-bl');

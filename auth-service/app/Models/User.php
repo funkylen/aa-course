@@ -8,6 +8,7 @@ use App\Producer;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
@@ -53,6 +54,8 @@ class User extends Authenticatable
 
         self::created(static function (User $model) {
             $event = [
+                'event_id' => (string) Str::uuid(),
+                'event_version' => 1,
                 'event_name' => 'UserCreated',
                 'data' => [
                     'public_id' => $model->public_id,

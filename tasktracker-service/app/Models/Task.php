@@ -15,5 +15,6 @@ class Task extends Model
         'description',
         'status',
         'user_id',
+        'jira_id',
     ];
 }
