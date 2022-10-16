@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Role;
 use App\Enums\TaskStatus;
 use App\Http\Requests\StoreTaskRequest;
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,15 +24,24 @@ class TaskController extends Controller
         return response($tasks);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
         // TODO: Page create task
         return response(null);
     }
 
+    private function validateUserHasRoles(...$roles)
+    {
+        $user = Auth::user();
+
+        if (!collect($user->roles)->hasAny(...$roles)) {
+            abort(403);
+        }
+    }
+
     public function store(StoreTaskRequest $request): Response
     {
-        // TODO: validate manager and admin access
+        $this->validateUserHasRoles(Role::MANAGER, Role::ADMIN);
 
         $task = new Task();
 
@@ -54,7 +65,11 @@ class TaskController extends Controller
 
     public function complete(Task $task): Response
     {
-        // TODO: validate user_id for task
+        $user = Auth::user();
+
+        if ($user->id !== $task->user_id) {
+            abort(403);
+        }
 
         $task->status = TaskStatus::COMPLETED;
 
@@ -67,7 +82,7 @@ class TaskController extends Controller
 
     public function reassignAll(): Response
     {
-        // TODO: validate admin or manager
+        $this->validateUserHasRoles(Role::MANAGER, Role::ADMIN);
 
         $tasks = Task::all();
 
