@@ -8,6 +8,8 @@ use App\Http\Requests\StoreTaskRequest;
 use App\Models\Task;
 use App\Models\User;
 use App\Producer;
+use App\SchemaRegistry;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -53,11 +55,11 @@ class TaskController extends Controller
 
         $task->status = TaskStatus::COMPLETED;
 
-        $task->save();
-
         if (str($task->title)->containsAll(['[', ']'])) {
             abort(400, "Remove Jira ID from title.");
         }
+
+        $task->save();
 
         $event = [
             'event_id' => (string) Str::uuid(),
@@ -71,6 +73,10 @@ class TaskController extends Controller
                 'description' => $task->description,
             ],
         ];
+
+        if (!SchemaRegistry::validateEvent($event, 'tasks.created', $event['event_version'])) {
+            throw new Exception('Event Schema Validation Failed');
+        }
 
         Producer::call($event, 'tasks-stream');
 
@@ -108,6 +114,10 @@ class TaskController extends Controller
 
         Producer::call($event, 'tasks-stream');
 
+        if (!SchemaRegistry::validateEvent($event, 'tasks.updated', $event['event_version'])) {
+            throw new Exception('Event Schema Validation Failed');
+        }
+
         $eventBL = [
             'event_id' => (string) Str::uuid(),
             'event_version' => 1,
@@ -118,6 +128,10 @@ class TaskController extends Controller
                 'title' => $task->title,
             ],
         ];
+
+        if (!SchemaRegistry::validateEvent($eventBL, 'tasks.created', $eventBL['event_version'])) {
+            throw new Exception('Event Schema Validation Failed');
+        }
 
         Producer::call($eventBL, 'tasks-bl');
 
@@ -145,6 +159,10 @@ class TaskController extends Controller
                 ],
             ];
 
+            if (!SchemaRegistry::validateEvent($event, 'tasks.updated', $event['event_version'])) {
+                throw new Exception('Event Schema Validation Failed');
+            }
+
             Producer::call($event, 'tasks-stream');
 
             $task->save();
@@ -158,6 +176,10 @@ class TaskController extends Controller
                 'reassigner_public_id' => Auth::id(),
             ],
         ];
+
+        if (!SchemaRegistry::validateEvent($eventBL, 'tasks.updated', $eventBL['event_version'])) {
+            throw new Exception('Event Schema Validation Failed');
+        }
 
         Producer::call($eventBL, 'tasks-bl');
 

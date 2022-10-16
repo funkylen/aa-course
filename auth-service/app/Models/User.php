@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\Role;
 use App\Producer;
+use App\SchemaRegistry;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -64,6 +65,10 @@ class User extends Authenticatable
                     'role' => $model->role,
                 ],
             ];
+
+            if (!SchemaRegistry::validateEvent($event, 'users.created', $event['event_version'])) {
+                throw new \Exception('Event Schema Validation Failed');
+            }
 
             Producer::call($event, 'users-stream');
         });
