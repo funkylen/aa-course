@@ -7,6 +7,7 @@ use App\Http\Requests\StoreTaskRequest;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
@@ -15,7 +16,11 @@ class TaskController extends Controller
         return response(Task::all());
     }
 
-    // TODO: My Tasks Route
+    public function getCurrentUserTasks(): Response
+    {
+        $tasks = Task::where('user_id', Auth::id())->get();
+        return response($tasks);
+    }
 
     public function create(): Response
     {
