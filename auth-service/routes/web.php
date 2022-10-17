@@ -23,19 +23,3 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 require __DIR__.'/auth.php';
-
-
-Route::get('/kafka', function () {
-
-    $event = [
-        // 'event_name' => 'UserCreated',
-        // 'data' => [
-            'public_id' => 'id',
-            'email' => 'email',
-            'name' => 'name',
-            'role' => 'role',
-        // ],
-    ];
-
-    Producer::call($event, 'users-stream');
-});

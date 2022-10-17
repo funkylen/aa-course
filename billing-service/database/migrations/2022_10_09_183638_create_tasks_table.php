@@ -17,8 +17,6 @@ return new class extends Migration
             $table->id();
 
             $table->uuid('public_id');
-            $table->string('title');
-            $table->string('jira_id');
             $table->string('price');
             $table->string('status');
             $table->uuid('user_id');

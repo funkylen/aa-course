@@ -8,7 +8,7 @@ services:
       - ./:/var/www
       - ./app.conf:/etc/nginx/conf.d/default.conf
     ports:
-      - "127.0.0.1:8020:8000"
+      - "127.0.0.1:8030:8000"
     networks:
       - backend
       - async-arch-external
@@ -33,7 +33,7 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5420:5432"
+      - "127.0.0.1:5430:5432"
     networks:
       - backend
 

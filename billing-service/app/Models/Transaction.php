@@ -2,19 +2,26 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Task extends Model
+class Transaction extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'public_id',
-        'title',
-        'description',
-        'status',
+        'task_id',
         'user_id',
-        'jira_id',
+        'public_id',
+
+        'type',
+        'value',
+
+        'description',
+    ];
+
+    protected $casts = [
+        'type' => TransactionType::class,
     ];
 }

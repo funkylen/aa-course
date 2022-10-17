@@ -10,6 +10,9 @@ class Task extends Model
     use HasFactory;
 
     protected $fillable = [
-        // TODO: Заполнить после бойлерплейта
+        'public_id',
+        'user_id',
+        'price',
+        'status',
     ];
 }
